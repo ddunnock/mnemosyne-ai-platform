@@ -3,9 +3,9 @@
   "name": "Mnemosyne AI Platform",
   "version": "2.0.0",
   "minAppVersion": "1.6.0",
-  "description": "Transform you vault into an AI-powered workspace with specialized agents, semantic search, and intelligent note operations.",
+  "description": "Transform your vault into an AI-powered workspace with specialized agents, semantic search, and intelligent note operations.",
   "author": "David Dunnock",
   "authorUrl": "https://github.com/ddunnock",
   "fundingUrl": "https://www.buymeacoffee.com/ddunnock",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }

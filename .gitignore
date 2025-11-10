@@ -9,3 +9,6 @@ yarn-error.log*
 .pnp.js
 
 .vscode/*
+
+# Remove from gitignore once ready to submit and correct docs are in place.
+/docs/*
