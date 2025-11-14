@@ -4,9 +4,10 @@
  * Constitution Requirement VI: Sentence case, setHeading() API, Obsidian CSS variables
  */
 
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, Modal, Notice } from 'obsidian';
 import type AIAgentPlatformPlugin from '../main';
-import { PluginSettings } from '../types/Settings';
+import { PluginSettings, ProviderConfig } from '../types/Settings';
+import { EncryptionMetadata } from '../security/EncryptionService';
 
 export class MnemosyneSettingsTab extends PluginSettingTab {
     plugin: AIAgentPlatformPlugin;
@@ -51,8 +52,11 @@ export class MnemosyneSettingsTab extends PluginSettingTab {
             .addButton(button => button
                 .setButtonText('Add provider')
                 .onClick(() => {
-                    // Will be implemented in Phase 3
-                    console.log('Add provider clicked');
+                    new ProviderConfigModal(this.app, this.plugin, null, async (config) => {
+                        this.plugin.settings.providers.push(config);
+                        await this.plugin.saveSettings();
+                        this.display();
+                    }).open();
                 }));
 
         // List existing providers
@@ -62,20 +66,45 @@ export class MnemosyneSettingsTab extends PluginSettingTab {
                 cls: 'setting-item-description'
             });
         } else {
-            this.plugin.settings.providers.forEach(provider => {
+            this.plugin.settings.providers.forEach((provider, index) => {
                 new Setting(containerEl)
                     .setName(provider.name)
-                    .setDesc(`Type: ${provider.type} | Enabled: ${provider.enabled ? 'Yes' : 'No'}`)
+                    .setDesc(`Type: ${provider.type} | Model: ${provider.model || 'default'} | Enabled: ${provider.enabled ? 'Yes' : 'No'}`)
+                    .addButton(button => button
+                        .setButtonText('Test')
+                        .onClick(async () => {
+                            button.setDisabled(true);
+                            button.setButtonText('Testing...');
+                            try {
+                                const result = await this.plugin.providerManager.validateProvider(provider);
+                                if (result.valid) {
+                                    new Notice('Provider validated successfully!');
+                                } else {
+                                    new Notice(`Validation failed: ${result.error}`);
+                                }
+                            } catch (error) {
+                                new Notice(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            } finally {
+                                button.setDisabled(false);
+                                button.setButtonText('Test');
+                            }
+                        }))
                     .addButton(button => button
                         .setButtonText('Edit')
                         .onClick(() => {
-                            console.log('Edit provider:', provider.id);
+                            new ProviderConfigModal(this.app, this.plugin, provider, async (updatedConfig) => {
+                                this.plugin.settings.providers[index] = updatedConfig;
+                                await this.plugin.saveSettings();
+                                this.display();
+                            }).open();
                         }))
                     .addButton(button => button
                         .setButtonText('Remove')
                         .setWarning()
-                        .onClick(() => {
-                            console.log('Remove provider:', provider.id);
+                        .onClick(async () => {
+                            this.plugin.settings.providers.splice(index, 1);
+                            await this.plugin.saveSettings();
+                            this.display();
                         }));
             });
         }
@@ -426,5 +455,191 @@ export class MnemosyneSettingsTab extends PluginSettingTab {
                     this.plugin.settings.conversation.showSourceCitations = value;
                     await this.plugin.saveSettings();
                 }));
+    }
+}
+
+/**
+ * Provider Configuration Modal
+ * FR-003, FR-004: API key validation with master password
+ */
+class ProviderConfigModal extends Modal {
+    private plugin: AIAgentPlatformPlugin;
+    private existingConfig: ProviderConfig | null;
+    private onSave: (config: ProviderConfig) => void;
+
+    private providerType: 'openai' | 'anthropic' | 'local' = 'openai';
+    private providerName = '';
+    private apiKey = '';
+    private endpoint = '';
+    private model = '';
+
+    constructor(
+        app: App,
+        plugin: AIAgentPlatformPlugin,
+        existingConfig: ProviderConfig | null,
+        onSave: (config: ProviderConfig) => void
+    ) {
+        super(app);
+        this.plugin = plugin;
+        this.existingConfig = existingConfig;
+        this.onSave = onSave;
+
+        if (existingConfig) {
+            this.providerType = existingConfig.type;
+            this.providerName = existingConfig.name;
+            this.endpoint = existingConfig.endpoint || '';
+            this.model = existingConfig.model || '';
+        }
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+
+        contentEl.createEl('h2', { text: this.existingConfig ? 'Edit provider' : 'Add provider' });
+
+        // Provider Type
+        new Setting(contentEl)
+            .setName('Provider type')
+            .setDesc('Select the LLM provider')
+            .addDropdown(dropdown => dropdown
+                .addOption('openai', 'OpenAI')
+                .addOption('anthropic', 'Anthropic')
+                .addOption('local', 'Local LLM')
+                .setValue(this.providerType)
+                .onChange((value: any) => {
+                    this.providerType = value;
+                    this.updateUI();
+                }));
+
+        // Provider Name
+        new Setting(contentEl)
+            .setName('Provider name')
+            .setDesc('A friendly name for this provider')
+            .addText(text => text
+                .setPlaceholder('My OpenAI Provider')
+                .setValue(this.providerName)
+                .onChange(value => this.providerName = value));
+
+        // API Key
+        if (this.providerType !== 'local' || this.existingConfig) {
+            new Setting(contentEl)
+                .setName('API key')
+                .setDesc('Your provider API key (encrypted with master password)')
+                .addText(text => {
+                    text
+                        .setPlaceholder('sk-...')
+                        .setValue(this.apiKey)
+                        .onChange(value => this.apiKey = value);
+                    text.inputEl.type = 'password';
+                });
+        }
+
+        // Endpoint (for local providers)
+        if (this.providerType === 'local') {
+            new Setting(contentEl)
+                .setName('Endpoint URL')
+                .setDesc('Local LLM endpoint (e.g., http://localhost:1234/v1)')
+                .addText(text => text
+                    .setPlaceholder('http://localhost:1234/v1')
+                    .setValue(this.endpoint)
+                    .onChange(value => this.endpoint = value));
+        }
+
+        // Model
+        new Setting(contentEl)
+            .setName('Model')
+            .setDesc('Default model to use (optional)')
+            .addText(text => text
+                .setPlaceholder(this.getDefaultModelPlaceholder())
+                .setValue(this.model)
+                .onChange(value => this.model = value));
+
+        // Buttons
+        const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'flex-end';
+        buttonContainer.style.gap = '8px';
+        buttonContainer.style.marginTop = '20px';
+
+        const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+        cancelButton.onclick = () => this.close();
+
+        const saveButton = buttonContainer.createEl('button', {
+            text: 'Save',
+            cls: 'mod-cta'
+        });
+        saveButton.onclick = async () => {
+            await this.handleSave();
+        };
+    }
+
+    private getDefaultModelPlaceholder(): string {
+        switch (this.providerType) {
+            case 'openai':
+                return 'gpt-4-turbo-preview';
+            case 'anthropic':
+                return 'claude-3-5-sonnet-20241022';
+            case 'local':
+                return 'local-model';
+            default:
+                return '';
+        }
+    }
+
+    private updateUI() {
+        this.onOpen();
+    }
+
+    private async handleSave() {
+        // Validate inputs
+        if (!this.providerName.trim()) {
+            new Notice('Provider name is required');
+            return;
+        }
+
+        if (this.providerType === 'local' && !this.endpoint.trim()) {
+            new Notice('Endpoint URL is required for local providers');
+            return;
+        }
+
+        // Encrypt API key if provided
+        let encryptedApiKey: string | undefined;
+        if (this.apiKey.trim()) {
+            try {
+                // Check if master password is set
+                if (!this.plugin.keyManager.isUnlocked()) {
+                    new Notice('Master password required. Please set up encryption first.');
+                    return;
+                }
+
+                const encrypted = await this.plugin.keyManager.encryptKey(
+                    this.existingConfig?.id || crypto.randomUUID(),
+                    this.apiKey
+                );
+                encryptedApiKey = JSON.stringify(encrypted);
+            } catch (error) {
+                new Notice(`Failed to encrypt API key: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                return;
+            }
+        }
+
+        const config: ProviderConfig = {
+            id: this.existingConfig?.id || crypto.randomUUID(),
+            name: this.providerName,
+            type: this.providerType,
+            apiKey: encryptedApiKey || this.existingConfig?.apiKey,
+            endpoint: this.endpoint || undefined,
+            model: this.model || undefined,
+            enabled: true
+        };
+
+        this.onSave(config);
+        this.close();
+    }
+
+    onClose() {
+        const { contentEl } = this;
+        contentEl.empty();
     }
 }

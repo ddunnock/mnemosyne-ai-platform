@@ -72,6 +72,8 @@ export interface MessageMetadata {
     retryCount?: number;
     edited?: boolean;
     editedAt?: number;
+    isSummary?: boolean;
+    summarizedMessages?: number;
 }
 
 export interface ContextState {

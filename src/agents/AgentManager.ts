@@ -11,6 +11,7 @@ import { Message, CompletionRequest } from '../types/Provider';
 import { ProviderManager } from '../providers/ProviderManager';
 import { getBackendAgents } from './BackendAgents';
 import { handleError } from '../utils/ErrorHandling';
+import { ConversationCompressor } from './ConversationCompressor';
 // Use crypto.randomUUID() for ID generation
 const uuidv4 = () => crypto.randomUUID();
 
@@ -18,11 +19,13 @@ export class AgentManager {
     private agents: Map<string, Agent> = new Map();
     private conversations: Map<string, Conversation> = new Map();
     private providerManager: ProviderManager;
+    private compressor: ConversationCompressor;
     private persona?: PersonaConfig;
     private app: App;
 
     constructor(providerManager: ProviderManager, persona: PersonaConfig | undefined, app: App) {
         this.providerManager = providerManager;
+        this.compressor = new ConversationCompressor(providerManager);
         this.persona = persona;
         this.app = app;
     }
@@ -272,6 +275,11 @@ export class AgentManager {
             // Update context state
             this.updateContextState(conversation);
 
+            // Check if compression is needed
+            if (this.compressor.shouldCompress(conversation, 50)) {
+                await this.compressConversation(conversation.id);
+            }
+
             return assistantMsg;
         } catch (error) {
             handleError(error instanceof Error ? error : new Error(String(error)), {
@@ -429,5 +437,40 @@ export class AgentManager {
      */
     exportConversations(): Conversation[] {
         return Array.from(this.conversations.values());
+    }
+
+    /**
+     * Compress a conversation to reduce token count
+     * FR-083: Conversation compression
+     */
+    async compressConversation(conversationId: string): Promise<CompressionResult | null> {
+        const conversation = this.conversations.get(conversationId);
+        if (!conversation) {
+            return null;
+        }
+
+        const config = {
+            strategy: 'summarize' as const,
+            targetTokens: 4000,
+            preserveSystemMessages: true,
+            preserveRecentMessages: 10
+        };
+
+        const providerId = conversation.agentId
+            ? this.agents.get(conversation.agentId)?.providerId || 'openai'
+            : 'openai';
+
+        const result = await this.compressor.compressConversation(
+            conversation,
+            config,
+            providerId
+        );
+
+        // Update conversation state after compression
+        conversation.contextState.lastCompressionAt = result.timestamp;
+        conversation.contextState.compressionTriggered = false;
+        this.updateContextState(conversation);
+
+        return result;
     }
 }
