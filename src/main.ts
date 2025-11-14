@@ -1,27 +1,29 @@
-import { Plugin, Notice } from 'obsidian';
+import { Plugin, Notice, WorkspaceLeaf } from 'obsidian';
 import { PluginSettings, DEFAULT_SETTINGS } from './types/Settings';
 import { MnemosyneSettingsTab } from './ui/SettingsTab';
+import { ChatView, CHAT_VIEW_TYPE } from './ui/ChatView';
+import { KeyManager } from './security/KeyManager';
+import { ProviderManager } from './providers/ProviderManager';
+import { OpenAIProvider } from './providers/OpenAIProvider';
+import { AnthropicProvider } from './providers/AnthropicProvider';
+import { LocalProvider } from './providers/LocalProvider';
+import { AgentManager } from './agents/AgentManager';
 import { getLogger } from './utils/logger';
-
-// Core managers will be implemented in later phases
-// import { LLMManager } from './core/llm/LLMManager';
-// import { AgentManager } from './core/agents/AgentManager';
-// import { AgentOrchestrator } from './core/orchestrator/AgentOrchestrator';
-// import { MnemosynePersona } from './core/persona/MnemosynePersona';
 
 const logger = getLogger('AIAgentPlatform');
 
 export default class AIAgentPlatformPlugin extends Plugin {
     settings!: PluginSettings;
 
-    // Core Systems (to be implemented in later phases)
-    // llmManager: LLMManager;
-    // agentManager: AgentManager;
+    // Core Systems
+    keyManager!: KeyManager;
+    providerManager!: ProviderManager;
+    agentManager!: AgentManager;
+
+    // To be implemented in later phases:
     // orchestrator: AgentOrchestrator;
-    // persona: MnemosynePersona;
     // ragSystem: RAGSystem;
     // mcpManager: MCPManager;
-    // memoryManager: MemoryManager;
 
     async onload() {
         logger.info('Loading AI Agent Platform Plugin v2.0.0');
@@ -41,8 +43,8 @@ export default class AIAgentPlatformPlugin extends Plugin {
             // Register commands
             this.registerCommands();
 
-            // Register views and UI elements (will be implemented in Phase 3)
-            // this.registerViews();
+            // Register views and UI elements
+            this.registerViews();
 
             // Register event handlers
             this.registerEventHandlers();
@@ -83,20 +85,55 @@ export default class AIAgentPlatformPlugin extends Plugin {
     private async initializeSystems(): Promise<void> {
         logger.info('Initializing core systems (deferred)...');
 
-        // Core systems will be initialized in later phases
-        // Phase 3: LLM Manager, Agent Manager, Persona
-        // Phase 4: RAG System
-        // Phase 7: MCP Manager
+        // Initialize Key Manager for encrypted API keys
+        this.keyManager = new KeyManager();
 
-        // Example initialization (to be implemented):
-        // this.persona = new MnemosynePersona(this.settings.persona);
-        // this.llmManager = new LLMManager(this.settings.providers, this.app);
-        // await this.llmManager.initialize();
-        // this.agentManager = new AgentManager(this.settings.agents, this.persona, this.app);
-        // await this.agentManager.initialize();
-        // this.orchestrator = new AgentOrchestrator(this.agentManager, this.llmManager, this.app);
+        // Initialize Provider Manager and register providers
+        this.providerManager = new ProviderManager(this.keyManager, this.app);
+        this.providerManager.registerProvider(new OpenAIProvider());
+        this.providerManager.registerProvider(new AnthropicProvider());
+        this.providerManager.registerProvider(new LocalProvider());
+
+        // Initialize providers with configurations
+        for (const providerConfig of this.settings.providers) {
+            if (providerConfig.enabled) {
+                try {
+                    await this.providerManager.initializeProvider(providerConfig);
+                } catch (error) {
+                    logger.error(`Failed to initialize provider ${providerConfig.id}:`, error);
+                }
+            }
+        }
+
+        // Initialize Agent Manager
+        this.agentManager = new AgentManager(
+            this.providerManager,
+            this.settings.persona,
+            this.app
+        );
+
+        // Load backend agents and custom agents (convert configs to agents)
+        const customAgents = this.settings.agents.map(config => ({
+            ...config,
+            skillTags: config.skillTags || [],
+            mcpTools: config.mcpToolPermissions || [],
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        }));
+        await this.agentManager.initialize(customAgents);
+
+        // Load saved conversations
+        const savedConversations = await this.loadConversations();
+        this.agentManager.loadConversations(savedConversations);
+
+        // Auto-archive old conversations
+        this.agentManager.autoArchiveOldConversations(this.settings.conversation.autoArchiveDays);
+
+        // Phase 4: RAG System (to be implemented)
         // this.ragSystem = new RAGSystem(this.settings.rag, this.app);
         // await this.ragSystem.initialize();
+
+        // Phase 7: MCP Manager (to be implemented)
         // this.mcpManager = new MCPManager(this.settings.mcp, this.app);
         // await this.mcpManager.initialize();
 
@@ -137,13 +174,12 @@ export default class AIAgentPlatformPlugin extends Plugin {
             }
         });
 
-        // Quick chat command
+        // Quick chat command (FR-012)
         this.addCommand({
             id: 'open-chat',
             name: 'Open AI chat',
             callback: () => {
-                // Will implement in Phase 3 (User Story 1)
-                new Notice('Chat interface coming in Phase 3');
+                this.activateChatView();
             }
         });
 
@@ -168,18 +204,80 @@ export default class AIAgentPlatformPlugin extends Plugin {
     }
 
     /**
+     * Register chat view
+     */
+    private registerViews(): void {
+        this.registerView(
+            CHAT_VIEW_TYPE,
+            (leaf) => new ChatView(leaf, this.agentManager)
+        );
+    }
+
+    /**
+     * Activate chat view in right sidebar
+     */
+    async activateChatView(): Promise<void> {
+        const { workspace } = this.app;
+
+        let leaf: WorkspaceLeaf | null = null;
+        const leaves = workspace.getLeavesOfType(CHAT_VIEW_TYPE);
+
+        if (leaves.length > 0) {
+            // View already exists, reveal it
+            leaf = leaves[0];
+        } else {
+            // Create new view in right sidebar
+            leaf = workspace.getRightLeaf(false);
+            await leaf?.setViewState({ type: CHAT_VIEW_TYPE, active: true });
+        }
+
+        // Reveal the leaf
+        if (leaf) {
+            workspace.revealLeaf(leaf);
+        }
+    }
+
+    /**
      * Clean up resources on plugin unload
      */
     private async cleanup(): Promise<void> {
-        // Close database connections
-        // if (this.ragSystem) {
-        //   await this.ragSystem.close();
-        // }
+        // Save conversations before unload
+        await this.saveConversations();
+
+        // Clear decrypted keys from memory
+        if (this.keyManager) {
+            this.keyManager.clearAllKeys();
+        }
+
+        // Clean up providers
+        if (this.providerManager) {
+            this.providerManager.cleanup();
+        }
 
         // Save any pending data
         await this.saveSettings();
 
         logger.info('Cleanup completed');
+    }
+
+    /**
+     * Load conversations from storage
+     */
+    private async loadConversations() {
+        const data = await this.loadData();
+        return data?.conversations || [];
+    }
+
+    /**
+     * Save conversations to storage (FR-017, FR-018)
+     */
+    private async saveConversations() {
+        if (!this.agentManager) return;
+
+        const conversations = this.agentManager.exportConversations();
+        const data = await this.loadData() || {};
+        data.conversations = conversations;
+        await this.saveData(data);
     }
 
     /**

@@ -108,7 +108,7 @@ export class EncryptionService {
             const decryptedData = await crypto.subtle.decrypt(
                 {
                     name: encryptedData.algorithm,
-                    iv: iv,
+                    iv: iv as BufferSource,
                     tagLength: encryptedData.tagLength
                 },
                 key,
