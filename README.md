@@ -1,277 +1,422 @@
-# AI Agent Platform for Obsidian
+# Mnemosyne AI Agent Platform for Obsidian
 
-Transform your Obsidian vault into an AI-powered workspace with specialized agents, semantic search, intelligent note operations, and the optional Mnemosyne persona.
+**Version:** 0.1.0 Beta
+**Status:** Early Access
 
-## ✨ Features
+Transform your Obsidian vault into an AI-powered workspace with specialized agents and intelligent conversation management.
+
+> **⚠️ Beta Notice:** This is an early access release. Core chat features are stable, but advanced features (RAG, custom agents, orchestrator) are coming in future versions. Please report issues on GitHub.
+
+## ✨ Features (v0.1.0 Beta)
 
 ### 🤖 Specialized AI Agents
-- **10+ Expert Backend Agents** - Pre-configured specialists for different domains
-- **Custom Agent Creation** - Build your own specialized agents
-- **Intelligent Routing** - Automatic agent selection based on query intent
-- **Agent Templates** - Quick-start templates for common use cases
+- **12 Pre-configured Backend Agents** - Expert specialists for different domains:
+  - General Assistant - Versatile help for everyday tasks
+  - Writing Coach - Improve your writing with expert feedback
+  - Research Assistant - Deep research and analysis
+  - Code Expert - Programming help and debugging
+  - Creative Writer - Fiction, poetry, and creative projects
+  - Technical Writer - Documentation and technical content
+  - Data Analyst - Data interpretation and insights
+  - Learning Tutor - Educational support and explanations
+  - Project Manager - Task planning and organization
+  - Brainstorming Partner - Creative ideation and problem-solving
+  - Editor - Proofreading and editing assistance
+  - Summarizer - Concise summaries of complex content
 
-### 🔍 Advanced Knowledge Retrieval (RAG)
-- **Semantic Search** - Find notes by meaning, not just keywords
-- **Multiple Backends** - JSON (simple) or SQLite (performance)
-- **Hybrid Search** - Combines semantic and keyword approaches
-- **Metadata Filtering** - Search by folders, tags, and frontmatter
-
-### 🛠️ Model Context Protocol (MCP)
-- **Note Operations** - Agents can read and write notes
-- **Search Tools** - Find related notes and backlinks
-- **Metadata Management** - Update frontmatter and tags
-- **Safety First** - Read-only default with confirmation prompts
-
-### 🎭 Mnemosyne Persona (Optional)
-- **Toggle On/Off** - Enable the goddess of memory persona
-- **Intensity Levels** - Choose from subtle, moderate, or strong presence
-- **Contextual Wisdom** - Responses infused with timeless perspective
-- **Configurable** - Adjust to your preference
-
-### 🔐 Security & Privacy
-- **Encrypted API Keys** - AES-256 encryption with master password
-- **Local-First** - All data stays in your vault
-- **No Telemetry** - Your data is private
-- **Open Source** - Audit the code yourself
+### 💬 Advanced Chat Interface
+- **Right Sidebar View** - Dedicated chat panel in Obsidian
+- **Conversation Management** - Create, switch, archive conversations
+- **Context Compression** - Automatic conversation summarization when approaching context limits
+- **Markdown Support** - Rich formatting in messages (code blocks, lists, etc.)
+- **Persistent History** - Conversations saved between sessions
+- **Auto-archiving** - Inactive conversations (30+ days) automatically archived
+- **Visual Indicators** - Clear distinction between user and agent messages
+- **Token Tracking** - Monitor context usage and compression status
 
 ### 🌐 Multi-Provider Support
-- **OpenAI** - GPT-4, GPT-3.5 Turbo
-- **Anthropic** - Claude 3 models
-- **Local LLMs** - Ollama, LM Studio
-- **Custom Endpoints** - Bring your own API
+- **OpenAI** - GPT-4, GPT-4 Turbo, GPT-3.5 Turbo
+- **Anthropic** - Claude 3.5 Sonnet, Claude 3 Opus/Sonnet/Haiku
+- **Local LLMs** - Ollama, LM Studio, or any OpenAI-compatible endpoint
+- **Multiple Providers** - Configure several providers, use different ones per agent
 
-## 🚀 Installation
+### 🔐 Security & Privacy
+- **Encrypted API Keys** - AES-256-GCM encryption with PBKDF2 key derivation
+- **Master Password Protection** - Keys encrypted with your master password (100,000 iterations)
+- **Local-First** - All data stays in your vault
+- **No Telemetry** - Your data remains private
+- **Open Source** - Audit the code yourself
 
-### From Obsidian Community Plugins (Recommended)
-1. Open Obsidian Settings
-2. Navigate to Community Plugins
-3. Search for "AI Agent Platform"
-4. Click Install, then Enable
+### 📱 Mobile Compatible
+- ✅ Full chat functionality on iOS and Android
+- ✅ All agent features work on mobile
+- ✅ Settings management
+- ✅ Conversation history syncing
 
-### Manual Installation
-1. Download the latest release from GitHub
-2. Extract files to `.obsidian/plugins/ai-agent-platform/`
+## 🚀 Quick Start
+
+### 1. Installation
+
+#### From Obsidian Community Plugins (Coming Soon)
+1. Open Obsidian Settings → Community Plugins
+2. Browse and search for "Mnemosyne AI Agent Platform"
+3. Click Install, then Enable
+
+#### Manual Installation (Current Method)
+1. Download the latest release from [GitHub Releases](https://github.com/yourusername/mnemosyne-ai-platform/releases)
+2. Extract `main.js`, `manifest.json`, and `styles.css` to `.obsidian/plugins/mnemosyne-ai-platform/`
 3. Reload Obsidian
 4. Enable the plugin in Settings → Community Plugins
 
-## 📖 Quick Start
+### 2. First Time Setup
 
-### 1. Configure Your First LLM Provider
+#### Step 1: Set Master Password
+When you first open the plugin settings, you'll be prompted to create a master password. This password encrypts your API keys.
 
-1. Open Settings → AI Agent Platform → Providers
-2. Click "Add Provider"
-3. Choose your provider (OpenAI, Anthropic, etc.)
-4. Enter your API key
-5. Test the connection
+> **⚠️ Important:** Store this password securely! If you lose it, you'll need to re-enter all API keys.
 
-### 2. Try Your First Agent
+#### Step 2: Configure Your First Provider
 
-1. Open the Command Palette (Ctrl/Cmd + P)
-2. Run "AI Chat: Open Chat"
-3. Select an agent (try "General Assistant")
+1. Open **Settings → Mnemosyne AI Platform → Providers**
+2. Click **"Add provider"**
+3. Choose your provider:
+   - **OpenAI:** Get API key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+   - **Anthropic:** Get API key from [console.anthropic.com](https://console.anthropic.com)
+   - **Local LLM:** Use endpoint like `http://localhost:11434/v1` (Ollama)
+4. Enter your configuration:
+   - **Name:** Friendly name (e.g., "My OpenAI")
+   - **API Key:** Your provider's API key (will be encrypted)
+   - **Model:** Optional, defaults to provider's recommended model
+5. Click **"Test"** to verify connection
+6. Click **"Save"**
+
+#### Step 3: Start Chatting
+
+1. Open Command Palette (`Ctrl/Cmd + P`)
+2. Run **"Mnemosyne: Open AI chat"**
+3. Select an agent from the dropdown (try "General assistant")
 4. Start chatting!
 
-### 3. Enable Mnemosyne Persona (Optional)
+### 3. Managing Conversations
 
-1. Open Settings → AI Agent Platform → Persona
-2. Toggle "Enable Mnemosyne Persona"
-3. Choose intensity level:
-    - **Subtle** - Light references to memory and wisdom
-    - **Moderate** - Balanced divine presence (recommended)
-    - **Strong** - Full goddess persona with timeless perspective
-4. Chat with any agent to experience the persona
+- **New Conversation:** Click "New conversation" in the conversation list
+- **Switch Conversations:** Click any conversation in the list to load it
+- **Archive Conversation:** Select conversation → Archive button
+- **Delete Conversation:** Select conversation → Delete button (permanent!)
 
-### 4. Index Your Vault (Optional)
+Conversations older than 30 days are automatically archived but remain searchable.
 
-1. Open Settings → AI Agent Platform → RAG
-2. Click "Start Indexing"
-3. Wait for completion (progress shown)
-4. Agents can now search your notes semantically
-
-## 🎯 Core Concepts
+## 🎯 How It Works
 
 ### Agents
-Agents are specialized AI assistants with specific expertise:
-- **Backend Agents** - Pre-configured experts (cannot be deleted)
-- **Custom Agents** - Your own specialized assistants
-- Each agent has a system prompt that defines its behavior
-- Agents can use RAG to search your vault
-- Agents can use MCP tools to modify notes (with permission)
+Each agent is a specialized AI assistant with:
+- **System Prompt** - Defines expertise and behavior
+- **Provider** - Which LLM model to use
+- **Context** - Maintains conversation history
 
-### Orchestrator
-The orchestrator automatically routes your queries to the best agent:
-- Analyzes your query intent
-- Matches to agent capabilities
-- Provides routing confidence score
-- Always allows manual override
+**Backend agents** (the 12 pre-configured ones) cannot be deleted or modified - they provide stable, reliable expertise.
 
-### RAG (Retrieval Augmented Generation)
-RAG enhances agents with knowledge from your vault:
-- Indexes all markdown files
-- Creates semantic embeddings
-- Retrieves relevant context
-- Injects into agent prompts
+### Context Compression
+As conversations grow, the plugin automatically manages context:
+- **Tracks tokens** - Shows how much context is used
+- **Automatic summarization** - When nearing limits, old messages are summarized while preserving key information
+- **Preserves important info** - User preferences, decisions, ongoing tasks are retained
+- **Visual indicators** - Shows messages until compression
 
-### MCP (Model Context Protocol)
-MCP allows agents to interact with your vault:
-- **Read Tools** - Access note content
-- **Write Tools** - Create/update notes (with confirmation)
-- **Search Tools** - Find related notes
-- **Metadata Tools** - Manage frontmatter and tags
+### Conversation Management
+- **Active conversations** - Last used in past 30 days, shown in main list
+- **Archived conversations** - Older than 30 days, moved to archive
+- **Manual archiving** - Archive any conversation anytime
+- **Persistent storage** - All conversations saved in Obsidian plugin data
 
-### Mnemosyne Persona
-The optional Mnemosyne persona adds a layer of personality:
-- Named after the Greek goddess of memory
-- Provides responses with timeless wisdom
-- Adjustable intensity to match your preference
-- Can be toggled on/off anytime
-- Works with any agent
+## 🔧 Configuration Guide
 
-## 🔧 Configuration
+### Provider Settings
 
-### LLM Providers
+Each provider can be configured with:
+- **Name:** Display name in settings
+- **Type:** OpenAI, Anthropic, or Local
+- **API Key:** Encrypted with master password
+- **Endpoint:** Custom URL (mainly for local LLMs)
+- **Model:** Specific model to use (optional)
+- **Enabled:** Toggle provider on/off
 
-**OpenAI**
-- API Key: Required
-- Models: gpt-4, gpt-3.5-turbo, etc.
-- Rate Limits: Managed automatically
+### Provider-Specific Notes
 
-**Anthropic**
-- API Key: Required
-- Models: claude-3-opus, claude-3-sonnet, etc.
+**OpenAI:**
+- Default model: `gpt-4-turbo-preview`
+- Supports: GPT-4, GPT-4 Turbo, GPT-3.5 Turbo
+- Rate limits: Managed by OpenAI (429 errors handled gracefully)
+- Documentation: [platform.openai.com/docs](https://platform.openai.com/docs)
+
+**Anthropic:**
+- Default model: `claude-3-5-sonnet-20241022`
+- Supports: Claude 3.5 Sonnet, Claude 3 Opus/Sonnet/Haiku
 - Context: Up to 200K tokens
+- Documentation: [docs.anthropic.com](https://docs.anthropic.com)
 
-**Local LLMs**
-- Endpoint: http://localhost:11434 (Ollama)
-- No API key needed
-- Privacy: Fully offline
+**Local LLMs:**
+- Requires OpenAI-compatible endpoint
+- Works with: Ollama, LM Studio, LocalAI, etc.
+- No API key needed (leave blank)
+- Fully offline and private
+- Example Ollama setup:
+  ```bash
+  ollama serve  # Start Ollama server
+  # Use endpoint: http://localhost:11434/v1
+  # Model: llama2, mistral, etc.
+  ```
 
-### Agent Configuration
+### Conversation Settings
 
-Each agent can be configured with:
-- **Name & Description** - For identification
-- **System Prompt** - Defines behavior and expertise
-- **LLM Provider** - Which model to use
-- **RAG Settings** - Enable/disable, top-K, threshold
-- **MCP Tools** - Which tools are allowed
-- **Metadata Filters** - Restrict to folders/tags
+- **Max Context Tokens:** When to trigger compression (default: varies by model)
+- **Compression Strategy:** How to compress (default: summarize)
+- **Archive After Days:** Auto-archive threshold (default: 30)
 
-### RAG Settings
+## 🌐 Network Usage & Privacy
 
-- **Backend** - JSON (simple) or SQLite (fast)
-- **Embedding Provider** - OpenAI or local
-- **Indexed Folders** - Which folders to include
-- **Excluded Patterns** - What to skip
+### Required Network Connections
 
-### MCP Settings
+This plugin connects to external services for LLM functionality:
 
-- **Enabled** - Turn on/off tool usage
-- **Default Read-Only** - Safer mode
-- **Allowed Tools** - Whitelist specific tools
-- **Require Confirmation** - Prompt before writes
-- **Audit Log** - Track all tool executions
+- **OpenAI API** (`api.openai.com`) - When using OpenAI provider
+- **Anthropic API** (`api.anthropic.com`) - When using Anthropic provider
+- **Local LLM** (`localhost` or custom endpoint) - When using local provider
 
-### Persona Settings
+### Data Transmission
 
-- **Enable Persona** - Toggle Mnemosyne on/off
-- **Intensity** - Choose subtle, moderate, or strong
-- **Custom Additions** - Add your own persona tweaks
+**What is sent to LLM providers:**
+- Your chat messages
+- Conversation history (for context)
+- Agent system prompts
+
+**What is NOT sent:**
+- Your API keys (never transmitted, stored encrypted locally)
+- Other vault files or notes (not implemented in v0.1.0)
+- Usage statistics or telemetry
+- Personal information beyond your explicit messages
+
+**Local Storage:**
+- API keys: Encrypted with AES-256-GCM, stored in Obsidian plugin data
+- Conversations: Plain text, stored in Obsidian plugin data
+- Settings: Plain text, stored in Obsidian plugin data
+
+### Privacy Considerations
+
+- ⚠️ **Your messages are sent to your chosen LLM provider** (OpenAI, Anthropic, or local)
+- ⚠️ **OpenAI and Anthropic may use data per their terms** (check their policies)
+- ✅ **Local LLMs keep everything on your machine** (fully private)
+- ✅ **No plugin telemetry** - We don't collect any usage data
+- ✅ **Open source** - Audit the code at any time
 
 ## 📱 Mobile Support
 
-Core features work on mobile:
+Full feature parity on mobile devices:
+
+**iOS & Android:**
 - ✅ Chat interface
-- ✅ Agent selection
+- ✅ All 12 backend agents
+- ✅ Conversation management
+- ✅ Provider configuration
 - ✅ Settings management
-- ✅ Mnemosyne persona
-- ⚠️ RAG indexing (desktop recommended for large vaults)
-- ⚠️ Some MCP tools (limited filesystem access)
+- ✅ Context compression
 
-## 🌐 Network Usage
-
-This plugin connects to external services:
-
-### Required for Operation
-- **OpenAI API** (api.openai.com) - If using OpenAI provider
-- **Anthropic API** (api.anthropic.com) - If using Anthropic provider
-
-### Optional
-- **Local LLM** (localhost) - For offline operation
-- No other external connections
-
-### Data Transmission
-- Your prompts and vault content (when RAG is enabled) are sent to chosen LLM provider
-- API keys are encrypted and stored locally
-- No data is sent to plugin servers
-- No telemetry or analytics
+**Tested on:**
+- iOS 15+ (iPad and iPhone)
+- Android 10+
 
 ## 🔒 Security
 
-### API Key Storage
-- Encrypted with AES-256
-- Master password required
-- Keys never stored in plain text
-- Separate encryption per key
+### API Key Encryption
 
-### Vault Privacy
-- All processing happens locally
-- Only selected content sent to LLM APIs
-- RAG embeddings stored locally
-- No cloud synchronization
+Your API keys are protected with industry-standard encryption:
 
-### MCP Safety
-- Read-only mode by default
-- Confirmation prompts for writes
-- Audit log of all operations
-- Folder restrictions available
+- **Algorithm:** AES-256-GCM (authenticated encryption)
+- **Key Derivation:** PBKDF2 with 100,000 iterations
+- **Salt:** Unique random salt per key
+- **Storage:** Only encrypted ciphertext stored, never plaintext
+- **Memory:** Keys decrypted only during API calls, cleared after use (5-minute timeout)
+
+### Master Password
+
+- Required on first use
+- Used to encrypt/decrypt all API keys
+- Not stored anywhere (must be remembered)
+- Can be reset (but loses all encrypted keys)
+
+### Best Practices
+
+1. **Use a strong master password** - At least 12 characters, mix of letters/numbers/symbols
+2. **Don't share API keys** - Each user should have their own
+3. **Use read-only API keys if possible** - Check your LLM provider's options
+4. **Monitor usage** - Check your LLM provider's dashboard for unexpected usage
+5. **Local LLMs for sensitive content** - Use Ollama for maximum privacy
+
+## 🚧 Coming Soon (Roadmap)
+
+### v0.2.0 - RAG Integration (Semantic Search)
+- Index your vault notes
+- Agents can retrieve relevant notes
+- Source citations in responses
+- Conversation history search via RAG
+
+### v0.3.0 - Custom Agents
+- Create your own specialized agents
+- Custom system prompts
+- Per-agent provider selection
+- Per-agent RAG configuration
+
+### v0.4.0 - Intelligent Orchestrator
+- Real-time agent suggestions as you type
+- Confidence scores
+- "Auto" mode for automatic routing
+- Performance-based learning
+
+### v0.5.0 - MCP Tools (Vault Operations)
+- Agents can read notes
+- Agents can create/update notes (with confirmation)
+- Search tools for backlinks and tags
+- Frontmatter management
+- Audit logging
+
+### v0.6.0 - Enhanced Security
+- Master password prompt modal
+- Password reset flow
+- Key rotation
+- Security audit
+
+### v1.0.0 - Mnemosyne Persona (Optional)
+- Goddess of memory personality layer
+- Adjustable intensity (subtle/moderate/strong)
+- Toggle on/off anytime
+- Custom persona additions
+
+## 🐛 Troubleshooting
+
+### "Invalid API key" error
+- Verify key is correct at your provider's dashboard
+- Check key hasn't expired or been revoked
+- Try deleting and re-adding the provider
+- Ensure master password is correct
+
+### "Network error" or "Failed to fetch"
+- Check internet connection
+- Verify provider endpoint is correct (especially for local LLMs)
+- Check firewall isn't blocking Obsidian
+- For local LLMs: Ensure server is running (`ollama serve`, LM Studio started, etc.)
+
+### "Rate limit exceeded"
+- OpenAI/Anthropic enforces rate limits
+- Wait a few minutes and try again
+- Check your usage tier at provider's dashboard
+- Consider upgrading your plan
+
+### Conversations not saving
+- Check Obsidian settings → Files & Links → "Confirm file deletion" is disabled
+- Verify plugin data folder exists: `.obsidian/plugins/mnemosyne-ai-platform/`
+- Try disabling and re-enabling the plugin
+- Check Obsidian console for errors (Ctrl/Cmd + Shift + I)
+
+### Context compression issues
+- Normal behavior when conversations get long (50+ messages)
+- Compression preserves important information
+- Start a new conversation for fresh context
+- Check conversation settings to adjust thresholds
+
+### Mobile issues
+- Ensure plugin is enabled on mobile device
+- Check mobile settings allow plugin data sync
+- Verify API keys are synced (re-enter if needed)
+- Some mobile keyboards may have input quirks - try external keyboard
+
+### Master password forgotten
+- No recovery possible (encryption is secure!)
+- Settings → Mnemosyne → Advanced → "Reset master password"
+- ⚠️ This will clear all API keys - you'll need to re-enter them
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+Contributions are welcome! This is an open-source project.
+
+### How to Contribute
+
+1. **Report bugs:** [GitHub Issues](https://github.com/yourusername/mnemosyne-ai-platform/issues)
+2. **Suggest features:** [GitHub Discussions](https://github.com/yourusername/mnemosyne-ai-platform/discussions)
+3. **Submit code:**
+   - Fork the repository
+   - Create a feature branch
+   - Make your changes
+   - Submit a pull request
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/mnemosyne-ai-platform.git
+cd mnemosyne-ai-platform
+
+# Install dependencies
+npm install
+
+# Build the plugin
+npm run build
+
+# Watch for changes during development
+npm run dev
+```
+
+### Code Standards
+
+- TypeScript strict mode
+- ESLint compliance
+- Obsidian API best practices (see constitution in `/specs`)
+- No hardcoded styles (use Obsidian CSS variables)
+- All paths through `normalizePath()`
+- Network calls through `requestUrl()`
 
 ## 📝 License
 
-MIT License - See LICENSE file for details
+MIT License
 
-## 🐛 Bug Reports & Feature Requests
+Copyright (c) 2025 Mnemosyne AI Platform Contributors
 
-Please use GitHub Issues:
-- **Bug Report** - Describe the issue with reproduction steps
-- **Feature Request** - Explain the use case and desired behavior
-- **Question** - Ask for clarification or help
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## 🙏 Acknowledgments
 
-- Obsidian team for the excellent API
-- OpenAI and Anthropic for their LLM APIs
-- The Obsidian community for inspiration and feedback
-- Greek mythology for inspiring the Mnemosyne persona
-
-## 📚 Documentation
-
-- [User Guide](docs/USER_GUIDE.md)
-- [Agent Creation](docs/AGENTS.md)
-- [MCP Tools](docs/MCP.md)
-- [RAG Configuration](docs/RAG.md)
-- [Mnemosyne Persona](docs/PERSONA.md)
-- [API Reference](docs/API.md)
+- **Obsidian Team** - For the excellent plugin API
+- **OpenAI & Anthropic** - For their powerful LLM APIs
+- **Obsidian Community** - For inspiration and feedback
+- **Greek Mythology** - For the Mnemosyne inspiration (goddess of memory)
+- **Contributors** - Everyone who reports issues, suggests features, or contributes code
 
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/yourusername/obsidian-ai-agent-platform)
-- [Issue Tracker](https://github.com/yourusername/obsidian-ai-agent-platform/issues)
-- [Discussions](https://github.com/yourusername/obsidian-ai-agent-platform/discussions)
-- [Changelog](CHANGELOG.md)
+- **GitHub Repository:** [github.com/yourusername/mnemosyne-ai-platform](https://github.com/yourusername/mnemosyne-ai-platform)
+- **Issue Tracker:** [GitHub Issues](https://github.com/yourusername/mnemosyne-ai-platform/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/yourusername/mnemosyne-ai-platform/discussions)
+- **Changelog:** [CHANGELOG.md](CHANGELOG.md)
+- **OpenAI API Docs:** [platform.openai.com/docs](https://platform.openai.com/docs)
+- **Anthropic API Docs:** [docs.anthropic.com](https://docs.anthropic.com)
 
 ---
 
-**Version:** 2.0.0  
-**Status:** Active Development  
-**Last Updated:** November 2025
+**Made with ❤️ for the Obsidian community**
 
-Made with ❤️ for the Obsidian community
+*Transform your vault into an AI-powered knowledge workspace*

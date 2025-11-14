@@ -1,9 +1,9 @@
 {
   "id": "mnemosyne-ai-platform",
-  "name": "Mnemosyne AI Platform",
-  "version": "2.0.0",
+  "name": "Mnemosyne AI Agent Platform",
+  "version": "0.1.0",
   "minAppVersion": "1.6.0",
-  "description": "Transform your vault into an AI-powered workspace with specialized agents, semantic search, and intelligent note operations.",
+  "description": "Chat with specialized AI agents directly in Obsidian. Supports OpenAI, Anthropic, and local LLMs with encrypted API keys and conversation management.",
   "author": "David Dunnock",
   "authorUrl": "https://github.com/ddunnock",
   "fundingUrl": "https://www.buymeacoffee.com/ddunnock",

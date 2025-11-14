@@ -3,11 +3,13 @@ import { PluginSettings, DEFAULT_SETTINGS } from './types/Settings';
 import { MnemosyneSettingsTab } from './ui/SettingsTab';
 import { ChatView, CHAT_VIEW_TYPE } from './ui/ChatView';
 import { KeyManager } from './security/KeyManager';
+import { EncryptionMetadata } from './security/EncryptionService';
 import { ProviderManager } from './providers/ProviderManager';
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { AnthropicProvider } from './providers/AnthropicProvider';
 import { LocalProvider } from './providers/LocalProvider';
 import { AgentManager } from './agents/AgentManager';
+import { MasterPasswordModal } from './ui/MasterPasswordModal';
 import { getLogger } from './utils/logger';
 
 const logger = getLogger('AIAgentPlatform');
@@ -26,7 +28,7 @@ export default class AIAgentPlatformPlugin extends Plugin {
     // mcpManager: MCPManager;
 
     async onload() {
-        logger.info('Loading AI Agent Platform Plugin v2.0.0');
+        logger.info('Loading AI Agent Platform Plugin v0.1.0');
 
         try {
             // Load settings
@@ -88,19 +90,27 @@ export default class AIAgentPlatformPlugin extends Plugin {
         // Initialize Key Manager for encrypted API keys
         this.keyManager = new KeyManager();
 
+        // Check if we need to prompt for master password
+        const hasProviders = this.settings.providers.length > 0 && this.settings.providers.some(p => p.apiKey);
+        if (hasProviders || this.settings.encryptionMetadata) {
+            await this.promptForMasterPassword();
+        }
+
         // Initialize Provider Manager and register providers
         this.providerManager = new ProviderManager(this.keyManager, this.app);
         this.providerManager.registerProvider(new OpenAIProvider());
         this.providerManager.registerProvider(new AnthropicProvider());
         this.providerManager.registerProvider(new LocalProvider());
 
-        // Initialize providers with configurations
-        for (const providerConfig of this.settings.providers) {
-            if (providerConfig.enabled) {
-                try {
-                    await this.providerManager.initializeProvider(providerConfig);
-                } catch (error) {
-                    logger.error(`Failed to initialize provider ${providerConfig.id}:`, error);
+        // Initialize providers with configurations (only if key manager is unlocked or no encryption needed)
+        if (this.keyManager.isUnlocked() || !hasProviders) {
+            for (const providerConfig of this.settings.providers) {
+                if (providerConfig.enabled) {
+                    try {
+                        await this.providerManager.initializeProvider(providerConfig);
+                    } catch (error) {
+                        logger.error(`Failed to initialize provider ${providerConfig.id}:`, error);
+                    }
                 }
             }
         }
@@ -138,6 +148,34 @@ export default class AIAgentPlatformPlugin extends Plugin {
         // await this.mcpManager.initialize();
 
         logger.info('Core systems initialized successfully');
+    }
+
+    /**
+     * Prompt for master password if needed
+     * FR-114: Master password validation and re-entry flow
+     */
+    private async promptForMasterPassword(): Promise<void> {
+        return new Promise((resolve) => {
+            const modal = new MasterPasswordModal(
+                this.app,
+                this.keyManager,
+                this.settings.encryptionMetadata || null,
+                async (metadata?: EncryptionMetadata) => {
+                    // On success, save encryption metadata if it's first time
+                    if (metadata && !this.settings.encryptionMetadata) {
+                        this.settings.encryptionMetadata = metadata;
+                        await this.saveSettings();
+                    }
+                    resolve();
+                },
+                () => {
+                    // On cancel, continue without unlocking (providers won't work)
+                    new Notice('Continuing without unlocking. Provider features unavailable.');
+                    resolve();
+                }
+            );
+            modal.open();
+        });
     }
 
     /**
@@ -294,7 +332,7 @@ export default class AIAgentPlatformPlugin extends Plugin {
 - Providers: ${providers}
 - Agents: ${agents}
 - ${personaStatus}
-- Version: 2.0.0`;
+- Version: 0.1.0`;
     }
 
     /**

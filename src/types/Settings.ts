@@ -4,6 +4,7 @@
  */
 
 import { PersonaConfig } from './Agent';
+import { EncryptionMetadata } from '../security/EncryptionService';
 
 export interface PluginSettings {
     // Provider Settings
@@ -23,6 +24,9 @@ export interface PluginSettings {
 
     // Conversation Settings
     conversation: ConversationConfig;
+
+    // Security Settings
+    encryptionMetadata?: EncryptionMetadata;
 }
 
 export interface ProviderConfig {
