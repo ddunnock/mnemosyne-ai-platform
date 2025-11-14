@@ -10,5 +10,11 @@ yarn-error.log*
 
 .vscode/*
 
+# Build artifacts
+main.js
+main.js.map
+dist/
+*.js.map
+
 # Remove from gitignore once ready to submit and correct docs are in place.
 /docs/*

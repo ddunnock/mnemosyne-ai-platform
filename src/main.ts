@@ -1,23 +1,24 @@
 import { Plugin, Notice } from 'obsidian';
-import { PluginSettings, DEFAULT_SETTINGS } from './settings';
+import { PluginSettings, DEFAULT_SETTINGS } from './types/Settings';
+import { MnemosyneSettingsTab } from './ui/SettingsTab';
 import { getLogger } from './utils/logger';
-import { LLMManager } from './core/llm/LLMManager';
-import { AgentManager } from './core/agents/AgentManager';
-import { AgentOrchestrator } from './core/orchestrator/AgentOrchestrator';
-import { MnemosynePersona } from './core/persona/MnemosynePersona';
+
+// Core managers will be implemented in later phases
+// import { LLMManager } from './core/llm/LLMManager';
+// import { AgentManager } from './core/agents/AgentManager';
+// import { AgentOrchestrator } from './core/orchestrator/AgentOrchestrator';
+// import { MnemosynePersona } from './core/persona/MnemosynePersona';
 
 const logger = getLogger('AIAgentPlatform');
 
 export default class AIAgentPlatformPlugin extends Plugin {
-    settings: PluginSettings;
+    settings!: PluginSettings;
 
-    // Core Systems
-    llmManager: LLMManager;
-    agentManager: AgentManager;
-    orchestrator: AgentOrchestrator;
-    persona: MnemosynePersona;
-
-    // Additional managers will be initialized in later phases
+    // Core Systems (to be implemented in later phases)
+    // llmManager: LLMManager;
+    // agentManager: AgentManager;
+    // orchestrator: AgentOrchestrator;
+    // persona: MnemosynePersona;
     // ragSystem: RAGSystem;
     // mcpManager: MCPManager;
     // memoryManager: MemoryManager;
@@ -29,13 +30,18 @@ export default class AIAgentPlatformPlugin extends Plugin {
             // Load settings
             await this.loadSettings();
 
-            // Initialize core systems
-            await this.initializeSystems();
+            // Register settings tab
+            this.addSettingTab(new MnemosyneSettingsTab(this.app, this));
+
+            // Use workspace.onLayoutReady for deferred initialization (Constitution V)
+            this.app.workspace.onLayoutReady(async () => {
+                await this.initializeSystems();
+            });
 
             // Register commands
             this.registerCommands();
 
-            // Register views and UI elements
+            // Register views and UI elements (will be implemented in Phase 3)
             // this.registerViews();
 
             // Register event handlers
@@ -45,7 +51,7 @@ export default class AIAgentPlatformPlugin extends Plugin {
 
             // Show welcome notice
             if (this.settings.persona.enabled) {
-                new Notice(`✨ Mnemosyne awakens to serve your vault (${this.settings.persona.intensity} presence)`);
+                new Notice(`Mnemosyne awakens to serve your vault (${this.settings.persona.intensity} presence)`);
             } else {
                 new Notice('AI Agent Platform loaded successfully');
             }
@@ -71,39 +77,26 @@ export default class AIAgentPlatformPlugin extends Plugin {
     }
 
     /**
-     * Initialize all core systems
+     * Initialize all core systems (deferred via workspace.onLayoutReady)
+     * Constitution Requirement V: Non-critical operations deferred for performance
      */
     private async initializeSystems(): Promise<void> {
-        logger.info('Initializing core systems...');
+        logger.info('Initializing core systems (deferred)...');
 
-        // Initialize Mnemosyne Persona
-        this.persona = new MnemosynePersona(this.settings.persona);
-        logger.info(`Persona initialized: ${this.persona.getConfigDescription()}`);
+        // Core systems will be initialized in later phases
+        // Phase 3: LLM Manager, Agent Manager, Persona
+        // Phase 4: RAG System
+        // Phase 7: MCP Manager
 
-        // Initialize LLM Manager
-        this.llmManager = new LLMManager(this.settings.llmProviders, this.app);
-        await this.llmManager.initialize();
-
-        // Initialize Agent Manager
-        this.agentManager = new AgentManager(
-            this.settings.agents,
-            this.persona,
-            this.app
-        );
-        await this.agentManager.initialize();
-
-        // Initialize Orchestrator
-        this.orchestrator = new AgentOrchestrator(
-            this.agentManager,
-            this.llmManager,
-            this.app
-        );
-
-        // Initialize RAG System (Phase 2)
-        // this.ragSystem = new RAGSystem(this.settings.vectorStore, this.app);
+        // Example initialization (to be implemented):
+        // this.persona = new MnemosynePersona(this.settings.persona);
+        // this.llmManager = new LLMManager(this.settings.providers, this.app);
+        // await this.llmManager.initialize();
+        // this.agentManager = new AgentManager(this.settings.agents, this.persona, this.app);
+        // await this.agentManager.initialize();
+        // this.orchestrator = new AgentOrchestrator(this.agentManager, this.llmManager, this.app);
+        // this.ragSystem = new RAGSystem(this.settings.rag, this.app);
         // await this.ragSystem.initialize();
-
-        // Initialize MCP Manager (Phase 4)
         // this.mcpManager = new MCPManager(this.settings.mcp, this.app);
         // await this.mcpManager.initialize();
 
@@ -130,14 +123,14 @@ export default class AIAgentPlatformPlugin extends Plugin {
         // Toggle Mnemosyne Persona
         this.addCommand({
             id: 'toggle-persona',
-            name: 'Toggle Mnemosyne Persona',
+            name: 'Toggle Mnemosyne persona',
             callback: async () => {
                 this.settings.persona.enabled = !this.settings.persona.enabled;
-                this.persona.updateConfig(this.settings.persona);
+                // this.persona.updateConfig(this.settings.persona);
                 await this.saveSettings();
 
                 const message = this.settings.persona.enabled
-                    ? `✨ Mnemosyne awakens (${this.settings.persona.intensity} presence)`
+                    ? `Mnemosyne awakens (${this.settings.persona.intensity} presence)`
                     : 'Mnemosyne persona deactivated';
 
                 new Notice(message);
@@ -147,10 +140,10 @@ export default class AIAgentPlatformPlugin extends Plugin {
         // Quick chat command
         this.addCommand({
             id: 'open-chat',
-            name: 'Open AI Chat',
+            name: 'Open AI chat',
             callback: () => {
-                // Will implement in Phase 5
-                new Notice('Chat interface coming in Phase 5');
+                // Will implement in Phase 3 (User Story 1)
+                new Notice('Chat interface coming in Phase 3');
             }
         });
 
@@ -193,9 +186,11 @@ export default class AIAgentPlatformPlugin extends Plugin {
      * Get current plugin status for debugging
      */
     private getPluginStatus(): string {
-        const providers = this.settings.llmProviders.length;
+        const providers = this.settings.providers.length;
         const agents = this.settings.agents.length;
-        const personaStatus = this.persona.getConfigDescription();
+        const personaStatus = this.settings.persona.enabled
+            ? `Persona: ${this.settings.persona.intensity}`
+            : 'Persona: disabled';
 
         return `AI Agent Platform Status:
 - Providers: ${providers}
@@ -229,7 +224,7 @@ export default class AIAgentPlatformPlugin extends Plugin {
         if (intensity) {
             this.settings.persona.intensity = intensity;
         }
-        this.persona.updateConfig(this.settings.persona);
+        // this.persona.updateConfig(this.settings.persona);
         this.saveSettings();
     }
 }
