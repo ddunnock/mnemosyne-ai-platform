@@ -35,11 +35,24 @@ const context = await esbuild.context({
     logLevel: 'info',
     sourcemap: prod ? false : 'inline',
     treeShaking: true,
+    splitting: false,
     outfile: 'main.js',
     minify: prod,
     define: {
         'process.env.NODE_ENV': prod ? '"production"' : '"development"'
-    }
+    },
+    jsx: 'automatic',
+    jsxImportSource: 'preact',
+    alias: {
+        'react': 'preact/compat',
+        'react-dom': 'preact/compat'
+    },
+    // Code splitting configuration for heavy optional modules
+    // Note: Manual chunking via dynamic imports in code for:
+    // - @xenova/transformers (only load when local embeddings needed)
+    // - hnswlib-wasm (only load when WASM vector store needed)
+    // - better-sqlite3 (only load on desktop platform)
+    metafile: prod,
 });
 
 if (prod) {

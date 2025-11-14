@@ -1,0 +1,253 @@
+/* Mnemosyne AI Platform - Styles using Obsidian CSS Variables */
+
+/* Root variables - using Obsidian's theme system */
+.mnemosyne-plugin {
+    --mnemosyne-primary: var(--interactive-accent);
+    --mnemosyne-primary-hover: var(--interactive-accent-hover);
+    --mnemosyne-background: var(--background-primary);
+    --mnemosyne-background-secondary: var(--background-secondary);
+    --mnemosyne-text: var(--text-normal);
+    --mnemosyne-text-muted: var(--text-muted);
+    --mnemosyne-text-faint: var(--text-faint);
+    --mnemosyne-border: var(--background-modifier-border);
+    --mnemosyne-hover: var(--background-modifier-hover);
+}
+
+/* Chat View Styles */
+.mnemosyne-chat-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--mnemosyne-background);
+}
+
+.mnemosyne-chat-header {
+    padding: var(--size-4-3);
+    border-bottom: 1px solid var(--mnemosyne-border);
+    background-color: var(--mnemosyne-background-secondary);
+}
+
+.mnemosyne-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--size-4-2);
+}
+
+.mnemosyne-chat-input-container {
+    padding: var(--size-4-2);
+    border-top: 1px solid var(--mnemosyne-border);
+    background-color: var(--mnemosyne-background-secondary);
+}
+
+/* Message Bubbles */
+.mnemosyne-message {
+    margin-bottom: var(--size-4-2);
+    padding: var(--size-4-2);
+    border-radius: var(--radius-m);
+    max-width: 85%;
+}
+
+.mnemosyne-message.user {
+    margin-left: auto;
+    background-color: var(--mnemosyne-primary);
+    color: var(--text-on-accent);
+}
+
+.mnemosyne-message.assistant {
+    margin-right: auto;
+    background-color: var(--mnemosyne-background-secondary);
+    border: 1px solid var(--mnemosyne-border);
+}
+
+.mnemosyne-message-content {
+    word-wrap: break-word;
+}
+
+.mnemosyne-message-meta {
+    font-size: var(--font-ui-smaller);
+    color: var(--mnemosyne-text-muted);
+    margin-top: var(--size-2-2);
+}
+
+/* Agent Selector */
+.mnemosyne-agent-selector {
+    margin-bottom: var(--size-4-2);
+}
+
+.mnemosyne-agent-dropdown {
+    width: 100%;
+    padding: var(--size-4-1);
+    background-color: var(--mnemosyne-background);
+    border: 1px solid var(--mnemosyne-border);
+    border-radius: var(--radius-s);
+    color: var(--mnemosyne-text);
+    cursor: pointer;
+}
+
+.mnemosyne-agent-dropdown:hover {
+    background-color: var(--mnemosyne-hover);
+}
+
+/* Conversation List */
+.mnemosyne-conversation-list {
+    padding: var(--size-4-2);
+}
+
+.mnemosyne-conversation-item {
+    padding: var(--size-4-2);
+    margin-bottom: var(--size-2-1);
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    border: 1px solid var(--mnemosyne-border);
+}
+
+.mnemosyne-conversation-item:hover {
+    background-color: var(--mnemosyne-hover);
+}
+
+.mnemosyne-conversation-item.active {
+    background-color: var(--mnemosyne-primary);
+    color: var(--text-on-accent);
+}
+
+/* Compression Indicator */
+.mnemosyne-compression-indicator {
+    display: flex;
+    align-items: center;
+    padding: var(--size-2-2);
+    font-size: var(--font-ui-small);
+    color: var(--mnemosyne-text-muted);
+}
+
+.mnemosyne-compression-bar {
+    height: 4px;
+    background-color: var(--mnemosyne-border);
+    border-radius: var(--radius-s);
+    flex: 1;
+    margin-left: var(--size-4-1);
+    overflow: hidden;
+}
+
+.mnemosyne-compression-fill {
+    height: 100%;
+    background-color: var(--mnemosyne-primary);
+    transition: width 0.3s ease;
+}
+
+/* Settings Tab */
+.mnemosyne-settings-section {
+    margin-bottom: var(--size-4-6);
+}
+
+.mnemosyne-settings-section h3 {
+    color: var(--mnemosyne-text);
+    margin-bottom: var(--size-4-2);
+}
+
+.mnemosyne-setting-item {
+    padding: var(--size-4-2) 0;
+    border-bottom: 1px solid var(--mnemosyne-border);
+}
+
+.mnemosyne-setting-item:last-child {
+    border-bottom: none;
+}
+
+.mnemosyne-setting-item-name {
+    font-weight: var(--font-semibold);
+    color: var(--mnemosyne-text);
+}
+
+.mnemosyne-setting-item-description {
+    font-size: var(--font-ui-small);
+    color: var(--mnemosyne-text-muted);
+    margin-top: var(--size-2-1);
+}
+
+/* Orchestrator Preview */
+.mnemosyne-orchestrator-preview {
+    padding: var(--size-4-2);
+    background-color: var(--mnemosyne-background-secondary);
+    border: 1px solid var(--mnemosyne-primary);
+    border-radius: var(--radius-m);
+    margin-bottom: var(--size-4-2);
+}
+
+.mnemosyne-orchestrator-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mnemosyne-confidence-score {
+    font-size: var(--font-ui-smaller);
+    color: var(--mnemosyne-text-muted);
+}
+
+/* Buttons */
+.mnemosyne-button {
+    padding: var(--size-2-2) var(--size-4-2);
+    background-color: var(--mnemosyne-primary);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: var(--radius-s);
+    cursor: pointer;
+    font-size: var(--font-ui-medium);
+}
+
+.mnemosyne-button:hover {
+    background-color: var(--mnemosyne-primary-hover);
+}
+
+.mnemosyne-button-secondary {
+    background-color: var(--mnemosyne-background-secondary);
+    color: var(--mnemosyne-text);
+    border: 1px solid var(--mnemosyne-border);
+}
+
+.mnemosyne-button-secondary:hover {
+    background-color: var(--mnemosyne-hover);
+}
+
+/* Loading States */
+.mnemosyne-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--size-4-4);
+}
+
+.mnemosyne-spinner {
+    border: 2px solid var(--mnemosyne-border);
+    border-top-color: var(--mnemosyne-primary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: mnemosyne-spin 0.6s linear infinite;
+}
+
+@keyframes mnemosyne-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Source Citations */
+.mnemosyne-sources {
+    margin-top: var(--size-4-2);
+    padding-top: var(--size-4-2);
+    border-top: 1px solid var(--mnemosyne-border);
+}
+
+.mnemosyne-source-item {
+    font-size: var(--font-ui-small);
+    color: var(--mnemosyne-text-muted);
+    margin-top: var(--size-2-1);
+}
+
+.mnemosyne-source-link {
+    color: var(--mnemosyne-primary);
+    text-decoration: none;
+}
+
+.mnemosyne-source-link:hover {
+    text-decoration: underline;
+}
