@@ -1,4 +1,4 @@
-pec Feature Specification: AI Agent Platform for Obsidian
+# Feature Specification: AI Agent Platform for Obsidian
 
 **Feature Branch**: `001-ai-agent-platform`
 **Created**: 2025-11-13
@@ -13,7 +13,7 @@ A user wants to interact with specialized AI agents directly within their Obsidi
 
 **Why this priority**: This is the MVP - it delivers immediate value by enabling users to chat with AI without any complex setup. Users can start benefiting from the plugin with just an API key configuration.
 
-**Independent Test**: Can be fully tested by configuring an LLM provider API key, opening the chat interface, selecting a pre-configured agent (e.g., "General Assistant"), and receiving relevant responses. Delivers standalone value without RAG or MCP features.
+**Independent Test**: Can be fully tested by configuring an LLM provider API key, opening the chat interface, selecting a backend agent (e.g., "General Assistant"), and receiving relevant responses. Delivers standalone value without RAG or MCP features.
 
 **Acceptance Scenarios**:
 
@@ -71,12 +71,13 @@ A user wants the system to automatically suggest the most appropriate agent for 
 
 **Acceptance Scenarios**:
 
-1. **Given** the orchestrator is enabled, **When** the user types a query without selecting an agent, **Then** the system matches query intent to agent skill tags and suggests the most relevant agent with a confidence score
-2. **Given** an agent suggestion is made, **When** the user accepts the suggestion, **Then** the query is routed to that agent and the routing success is recorded
-3. **Given** an agent suggestion is made, **When** the user manually selects a different agent, **Then** the manually selected agent handles the query and the override is tracked as a failed routing
-4. **Given** multiple agents could handle a query, **When** the orchestrator analyzes it, **Then** it ranks agents by skill-to-query match and tool availability, showing top 3 suggestions
-5. **Given** the user has a conversation history, **When** they send a new query, **Then** the orchestrator considers conversation context in its routing decision
-6. **Given** an agent has low routing success over time, **When** the orchestrator evaluates it for future queries, **Then** its confidence scores are automatically adjusted downward based on performance metrics
+1. **Given** "Auto (Orchestrator)" mode is selected, **When** the user types a query in the chat input, **Then** a live agent suggestion with confidence score appears above the input box in real-time
+2. **Given** a real-time agent suggestion is displayed, **When** the user clicks the suggestion, **Then** it becomes locked in as the selected agent for that message
+3. **Given** a real-time agent suggestion is displayed, **When** the user sends the message without clicking the suggestion, **Then** the query is routed to the suggested agent and the routing success is recorded
+4. **Given** an agent suggestion is made, **When** the user manually changes the dropdown to select a different specific agent, **Then** the manually selected agent handles the query and the override is tracked as a failed routing
+5. **Given** multiple agents could handle a query, **When** the orchestrator analyzes it in real-time, **Then** it shows the top-ranked agent with confidence score and allows clicking to see alternatives
+6. **Given** the user has a conversation history, **When** they type a new query, **Then** the orchestrator considers conversation context in its real-time routing suggestion
+7. **Given** an agent has low routing success over time, **When** the orchestrator evaluates it for future queries, **Then** its confidence scores are automatically adjusted downward based on performance metrics
 
 ---
 
@@ -175,89 +176,104 @@ A user wants to optionally enable a personality layer that adds timeless wisdom 
 
 **Chat Interface**
 
-- **FR-012**: System MUST provide a chat interface accessible via command palette
-- **FR-013**: System MUST display conversation history with clear visual distinction between user messages and agent responses
+- **FR-012**: System MUST provide a chat interface as a right-side sidebar view accessible via command palette
+- **FR-013**: System MUST display conversation history with clear visual distinction between user messages and agent responses using chat bubble UI
 - **FR-014**: System MUST support markdown rendering in agent responses (code blocks, lists, formatting)
-- **FR-015**: System MUST allow users to select an agent before or during a conversation
+- **FR-015**: System MUST provide a dropdown selector at the top of the sidebar to choose between specific agents or "Auto (Orchestrator)" mode
 - **FR-016**: System MUST indicate when an agent is processing (loading/thinking state)
-- **FR-017**: System MUST allow users to start new conversations and switch between existing conversations
+- **FR-017**: System MUST allow users to start new conversations and switch between existing conversations from a list view showing recent conversations (active in last 30 days)
 - **FR-018**: System MUST preserve conversation history between plugin sessions
+- **FR-019**: System MUST automatically archive conversations that have been inactive for 30+ days while keeping them searchable
+- **FR-020**: System MUST allow users to manually archive or delete conversations at any time
+- **FR-021**: System MUST index all conversation history into the RAG backend so agents can retrieve and reference past discussions
+- **FR-022**: System MUST track token/message count for the current conversation context window
+- **FR-023**: System MUST display a context compression indicator at the top of the chat sidebar showing messages remaining before compression
+- **FR-024**: System MUST automatically compress (summarize) conversation context when approaching the model's context window limit
+- **FR-025**: System MUST preserve critical information during compression (user preferences, key decisions, ongoing tasks) while reducing token count
+- **FR-026**: System MUST implement the chat sidebar UI using Preact components for lightweight, performant rendering
+- **FR-027**: System MUST style all chat interface components using Obsidian CSS variables to ensure automatic theme compatibility
+- **FR-028**: System MUST maintain chat sidebar bundle size under 50KB (including Preact runtime) to minimize plugin load impact
 
 **RAG (Retrieval Augmented Generation)**
 
-- **FR-019**: System MUST support two RAG backend types: JSON (simple) and SQLite (performance)
-- **FR-020**: System MUST index all markdown files in the vault when RAG indexing is initiated
-- **FR-021**: System MUST show indexing progress (percentage complete, files processed)
-- **FR-022**: System MUST allow users to configure which folders to include/exclude from indexing
-- **FR-023**: System MUST update the index automatically when vault files are created, modified, or deleted
-- **FR-024**: System MUST retrieve semantically relevant note excerpts when agents need context
-- **FR-025**: System MUST allow per-agent RAG configuration (enable/disable, top-K results, relevance threshold)
-- **FR-026**: System MUST support metadata filtering (folder restrictions, tag filtering) for RAG queries
-- **FR-027**: System MUST support both semantic search (embeddings) and keyword search (hybrid approach)
+- **FR-029**: System MUST support three RAG backend types with automatic platform detection: SQLite (desktop via better-sqlite3), IndexedDB (mobile), and JSON (universal fallback)
+- **FR-030**: System MUST automatically detect the platform (desktop vs mobile) and select the optimal RAG backend without user configuration
+- **FR-031**: System MUST use Platform.isDesktopApp or equivalent Obsidian API to determine platform type for backend selection
+- **FR-032**: System MUST index all markdown files in the vault when RAG indexing is initiated
+- **FR-033**: System MUST show indexing progress (percentage complete, files processed)
+- **FR-034**: System MUST allow users to configure which folders to include/exclude from indexing
+- **FR-035**: System MUST update the index automatically when vault files are created, modified, or deleted
+- **FR-036**: System MUST retrieve semantically relevant note excerpts when agents need context
+- **FR-037**: System MUST allow per-agent RAG configuration (enable/disable, top-K results, relevance threshold)
+- **FR-038**: System MUST support metadata filtering (folder restrictions, tag filtering) for RAG queries
+- **FR-039**: System MUST support both semantic search (embeddings) and keyword search (hybrid approach)
 
 **MCP (Model Context Protocol) Tools**
 
-- **FR-028**: System MUST provide read tools (access note content, read specific notes)
-- **FR-029**: System MUST provide write tools (create notes, update notes, modify frontmatter)
-- **FR-030**: System MUST provide search tools (find by keywords, tags, backlinks)
-- **FR-031**: System MUST require user confirmation before executing any write operation
-- **FR-032**: System MUST support read-only mode where write operations are disabled
-- **FR-033**: System MUST maintain an audit log of all tool executions with timestamp, agent, and action
-- **FR-034**: System MUST allow users to configure which tools are available per agent
-- **FR-035**: System MUST respect folder restrictions when tools access vault content
+- **FR-040**: System MUST provide read tools (access note content, read specific notes)
+- **FR-041**: System MUST provide write tools (create notes, update notes, modify frontmatter)
+- **FR-042**: System MUST provide search tools (find by keywords, tags, backlinks)
+- **FR-043**: System MUST require user confirmation before executing any write operation
+- **FR-044**: System MUST support read-only mode where write operations are disabled
+- **FR-045**: System MUST maintain an audit log of all tool executions with timestamp, agent, and action
+- **FR-046**: System MUST allow users to configure which tools are available per agent
+- **FR-047**: System MUST respect folder restrictions when tools access vault content
 
 **Orchestrator (Agent Routing)**
 
-- **FR-036**: System MUST analyze user queries to determine intent and match to agent capabilities based on declared skill tags
-- **FR-037**: System MUST provide agent recommendations with confidence scores
-- **FR-038**: System MUST allow users to override orchestrator suggestions and manually select agents
-- **FR-039**: System MUST consider conversation context when routing follow-up queries
-- **FR-040**: System MUST rank multiple matching agents by relevance based on skill-to-query matching
-- **FR-061**: System MUST allow agents (both backend and custom) to declare skill tags that describe their capabilities
-- **FR-062**: System MUST match tool availability (MCP tools, RAG scope) with agent skill declarations during routing
-- **FR-063**: System MUST track routing success metrics (user accepts suggestion vs manual override) per agent
-- **FR-064**: System MUST adapt agent confidence scores based on historical routing performance over time
-- **FR-065**: System MUST allow manual adjustment of skill taxonomy and agent-skill associations by power users
-- **FR-066**: System MUST enforce a maximum delegation depth limit (configurable, default 3 hops) to prevent infinite loops
-- **FR-067**: System MUST track visited agents in the current query's routing call stack
-- **FR-068**: System MUST prevent re-routing to any agent already visited in the same query chain
-- **FR-069**: System MUST terminate routing and return an error message when maximum delegation depth is reached
-- **FR-070**: System MUST allow users to configure the maximum delegation depth in advanced orchestrator settings
+- **FR-048**: System MUST analyze user queries to determine intent and match to agent capabilities based on declared skill tags
+- **FR-049**: System MUST provide agent recommendations with confidence scores
+- **FR-050**: System MUST allow users to override orchestrator suggestions and manually select agents
+- **FR-051**: System MUST consider conversation context when routing follow-up queries
+- **FR-052**: System MUST rank multiple matching agents by relevance based on skill-to-query matching
+- **FR-053**: System MUST allow agents (both backend and custom) to declare skill tags that describe their capabilities
+- **FR-054**: System MUST match tool availability (MCP tools, RAG scope) with agent skill declarations during routing
+- **FR-055**: System MUST track routing success metrics (user accepts suggestion vs manual override) per agent
+- **FR-056**: System MUST adapt agent confidence scores based on historical routing performance over time
+- **FR-057**: System MUST allow manual adjustment of skill taxonomy and agent-skill associations by power users
+- **FR-058**: System MUST enforce a maximum delegation depth limit (configurable, default 3 hops) to prevent infinite loops
+- **FR-059**: System MUST track visited agents in the current query's routing call stack
+- **FR-060**: System MUST prevent re-routing to any agent already visited in the same query chain
+- **FR-061**: System MUST terminate routing and return an error message when maximum delegation depth is reached
+- **FR-062**: System MUST allow users to configure the maximum delegation depth in advanced orchestrator settings
+- **FR-063**: System MUST display real-time agent suggestions with confidence scores as users type queries in "Auto (Orchestrator)" mode
+- **FR-064**: System MUST allow users to click the real-time suggestion to lock in the suggested agent before sending
+- **FR-065**: System MUST provide access to view alternative agent suggestions (top 3) from the real-time preview interface
 
 **Security & Privacy**
 
-- **FR-041**: System MUST encrypt all API keys using AES-256 encryption
-- **FR-042**: System MUST require a user-provided master password for key encryption/decryption
-- **FR-043**: System MUST never store API keys in plain text on disk
-- **FR-044**: System MUST decrypt keys in memory only when needed for API calls
-- **FR-045**: System MUST clear sensitive data from memory after use
-- **FR-046**: System MUST support SubtleCrypto (Web API) for encryption to ensure mobile compatibility
+- **FR-066**: System MUST encrypt all API keys using AES-256 encryption
+- **FR-067**: System MUST require a user-provided master password for key encryption/decryption
+- **FR-068**: System MUST never store API keys in plain text on disk
+- **FR-069**: System MUST decrypt keys in memory only when needed for API calls
+- **FR-070**: System MUST clear sensitive data from memory after use
+- **FR-071**: System MUST support SubtleCrypto (Web API) for encryption to ensure mobile compatibility
 
 **Mnemosyne Persona**
 
-- **FR-047**: System MUST allow users to enable/disable the Mnemosyne persona independently of other features
-- **FR-048**: System MUST support three intensity levels: Subtle, Moderate, Strong
-- **FR-049**: System MUST apply persona modifications to all agent responses when enabled
-- **FR-050**: System MUST allow users to customize persona additions beyond the default settings
+- **FR-072**: System MUST allow users to enable/disable the Mnemosyne persona independently of other features
+- **FR-073**: System MUST support three intensity levels: Subtle, Moderate, Strong
+- **FR-074**: System MUST apply persona modifications to all agent responses when enabled
+- **FR-075**: System MUST allow users to customize persona additions beyond the default settings
 
 **Settings & Configuration**
 
-- **FR-051**: System MUST provide a comprehensive settings interface organized by feature area (Providers, Agents, RAG, MCP, Persona)
-- **FR-052**: System MUST validate all user inputs and provide clear error messages for invalid configurations
-- **FR-053**: System MUST persist all settings and restore them when Obsidian reloads
-- **FR-054**: System MUST provide sensible defaults for all optional settings
+- **FR-076**: System MUST provide a comprehensive settings interface organized by feature area (Providers, Agents, RAG, MCP, Persona)
+- **FR-077**: System MUST validate all user inputs and provide clear error messages for invalid configurations
+- **FR-078**: System MUST persist all settings and restore them when Obsidian reloads
+- **FR-079**: System MUST provide sensible defaults for all optional settings
 
 **Mobile Compatibility**
 
-- **FR-055**: System MUST work on Obsidian mobile (iOS and Android) for core chat functionality
-- **FR-056**: System MUST gracefully degrade features that require desktop-only APIs with clear user notifications
-- **FR-057**: System MUST gate any Node.js/Electron API usage behind platform detection checks
+- **FR-080**: System MUST work on Obsidian mobile (iOS and Android) for core chat functionality
+- **FR-081**: System MUST gracefully degrade features that require desktop-only APIs with clear user notifications
+- **FR-082**: System MUST gate any Node.js/Electron API usage behind platform detection checks
 
 **Performance**
 
-- **FR-058**: System MUST optimize plugin load time by deferring non-critical initialization
-- **FR-059**: System MUST handle large vaults (10,000+ notes) without blocking the UI during indexing
-- **FR-060**: System MUST implement efficient search algorithms for RAG retrieval in large vaults
+- **FR-083**: System MUST optimize plugin load time by deferring non-critical initialization
+- **FR-084**: System MUST handle large vaults (10,000+ notes) without blocking the UI during indexing
+- **FR-085**: System MUST implement efficient search algorithms for RAG retrieval in large vaults (target: <50ms for top-10 results from 10,000 note index, aligning with SC-006 performance expectations)
 
 ### Key Entities
 
@@ -269,7 +285,7 @@ A user wants to optionally enable a personality layer that adds timeless wisdom 
 
 - **Message**: A single exchange in a conversation. Attributes: sender (user/agent), content (text/markdown), timestamp, metadata (tokens used, retrieval results if RAG).
 
-- **RAG Index**: The searchable knowledge base built from vault notes. Attributes: indexed file paths, embeddings, metadata (tags, folders, frontmatter), last updated timestamp, backend type (JSON/SQLite).
+- **RAG Index**: The searchable knowledge base built from vault notes. Attributes: indexed file paths, embeddings, metadata (tags, folders, frontmatter), last updated timestamp, backend type (SQLite/IndexedDB/JSON, auto-selected based on platform).
 
 - **MCP Tool Execution**: A record of vault operations performed by agents. Attributes: tool name, agent ID, operation type (read/write/search), target path, timestamp, result (success/failure), user confirmation status.
 
@@ -324,6 +340,16 @@ A user wants to optionally enable a personality layer that adds timeless wisdom 
 - Q: How should agents declare their capabilities to the orchestrator? → A: Skills-based taxonomy with tool declarations as primary method. Each agent declares skills (e.g., "code-review", "note-summarization") + available tools (MCP tools, RAG scopes). Orchestrator matches query intent to skill tags with confidence scoring. Additionally, the orchestrator should have adaptive learning capability to adjust scores and refine the taxonomy over time based on routing success/failure patterns.
 
 - Q: How should the orchestrator prevent infinite loops or agent recursion? → A: Maximum depth limit with explicit agent exclusion. Allow up to N delegation hops (e.g., 3), track visited agents in call stack, prevent re-routing to already-visited agents in same query chain. This allows multi-agent orchestration while providing hard safety boundaries against pathological loops.
+
+### Session 2025-11-14
+
+- Q: Which UI framework should be used for the chat sidebar interface to ensure lightweight, stylish, and theme-compatible implementation? → A: Preact with Obsidian CSS variables - provides lightweight bundle size (~3KB), proven compatibility in Obsidian plugin ecosystem, excellent TypeScript support, and seamless theme integration through CSS variables.
+
+- Q: How should the orchestrator interact with users when in "Auto (Orchestrator)" mode? → A: Real-time suggestion preview - As user types in Auto mode, show live agent suggestion with confidence score above the input box. User can click the suggestion to lock it in, or simply hit send to use the suggested agent. This provides transparency and control while maintaining intelligent routing.
+
+- Q: How should RAG backends be managed across desktop and mobile platforms to ensure optimal performance? → A: Automatic platform detection with three backends - Desktop uses SQLite (via better-sqlite3) for optimal performance, mobile uses IndexedDB (browser-native) for compatibility, and JSON serves as universal fallback. Platform detection happens automatically without user configuration, ensuring best performance per platform.
+
+- Q: How should conversation management and long-term memory work? → A: Three-part approach: (1) UI shows recent conversations (active in last 30 days) with manual archive/delete, older conversations auto-archived but searchable; (2) RAG-based conversation memory indexes all conversation history so agents can reference past discussions; (3) Context window management with compression indicator showing messages remaining before summarization is needed, with automatic compression when limit is approached.
 
 ### Assumptions
 
